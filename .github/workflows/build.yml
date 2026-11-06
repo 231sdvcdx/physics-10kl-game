@@ -1,0 +1,50 @@
+name: Сборка игры
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Проверка задач (ответы, разборы, типичные ошибки)
+        run: node test/content.mjs
+
+      - name: Сборка index.html
+        run: node build.mjs
+
+      - name: Версия
+        id: ver
+        run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Артефакт сборки
+        uses: actions/upload-artifact@v4
+        with:
+          name: konstanta-v${{ steps.ver.outputs.v }}
+          path: dist/index.html
+
+      - name: Релиз с index.html
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.v }}
+          name: КОНСТАНТА v${{ steps.ver.outputs.v }}
+          body: |
+            Скачайте **index.html** и откройте двойным кликом в Chrome или Edge.
+            Изменения этапа описаны в README → «Этапы» и в docs/roadmap.md.
+          files: dist/index.html
+          make_latest: true

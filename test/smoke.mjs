@@ -1,0 +1,10 @@
+import { launch, sleep, snap, dump, freezeHook } from './lib.mjs';
+const { browser, page, logs } = await launch({ w: 960, h: 540 });
+const t0 = Date.now();
+await page.waitForFunction(() => window.__game && window.__game.state === 'menu', null, { timeout: 90000 });
+console.log('menu after', Date.now() - t0, 'ms');
+await freezeHook(page); await page.evaluate(() => { window.__freeze = true; });
+await sleep(1500);
+await snap(page, 'menu');
+dump(logs);
+await browser.close();
