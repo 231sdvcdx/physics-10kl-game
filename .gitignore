@@ -1,0 +1,6 @@
+node_modules/
+dist/
+shots/
+book/
+*.log
+.DS_Store
